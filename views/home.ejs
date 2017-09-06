@@ -1,0 +1,424 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Chat Online</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	<script src="//code.jquery.com/jquery.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="/css/style.css">
+</head>
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document" id="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<p class="modal-title"  style="color: #000000; font-size: 20px" >Create a group</p>
+			</div>
+			<div class="modal-body">
+				<form action="/creategroup" method="POST" enctype="multipart/form-data">
+					<label  style="width: 100px;">Tên group</label>
+					<input type="text" name="name_group" id="name-group"><br>
+					<label style="width: 100px;">Mô tả</label>
+					<textarea id ="motagroup" name="description_group" placeholder="Mô tả...."></textarea><br>
+
+					<label style="width: 100px">Avatar</label>
+					<input type="file"  name="file" style="margin-left: 110px;">
+					<br>
+
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						<button type = "submit" class="btn btn-success">Create</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div> <!-- end modal -->
+<!-- Modal -->
+<div class="modal fade" id="myModaladdmember" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document" id="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<p class="modal-title"  style="color: #000000; font-size: 20px" >Add Member</p>
+			</div>
+			<div class="modal-body">
+
+				<label  style="width: 100px;">Tên group</label>
+
+				<span id="name_group_add"></span><br>
+				<label style="width: 100px;">Mô tả</label>
+				<span id="description_group_add"></span><br>
+
+				<input type="hidden" name="" id="groupId">
+				<br>
+				<label>Thêm thành viên</label>
+				<div id="addmember" style="border: 1px solid #CCCCCC; padding: 15px;">
+
+					<%if (users != null){for(i in users){%>
+					<%if(users[i]._id != session._id){%>	
+					<input type="checkbox" name="member" value="<%=users[i]._id%>"/> <label><%=users[i].username%></label> <br/>
+					<%}%>
+					<%}}%>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type = "button" id="AddMember" class="btn btn-success">Create</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+</div> <!-- end modal -->
+<body>
+
+	<div class="container">
+		<div class="row">
+			<div class="col-xs-6 col-sm-3 user-wrapper">
+				<div class="head-user-wrapper">
+
+				</div>
+				<div class="body-user-wrapper">
+					<div class="user-info">
+						<div class="user-info-img">
+							<img src="<%= session.avatar %>">
+						</div>
+						<div class="user-info-span">
+							<span style="margin-top : 150px;"><%=session.username%></span>
+						</div>
+
+					</div>
+					<div style="padding-top:10px; padding-left:15px; font-size:16px">
+						<span class="glyphicon glyphicon-user">  Info</span>
+					</div>
+					<div class="info">
+						<%if(session.description == null){%>
+						<a onclick="showcontent('info')" id = "title_set">Mô tả bản thân</a>
+						<div id="info_set">
+							<textarea id = "info_text"></textarea>
+							<button id = "gui" class="btn btn-success" onclick="gui('<%=session.id%>')">Gửi</button>
+							<button id = "huy" onclick="huy()"  class="btn btn-default">Hủy</button>
+						</div>
+						<%}else{%>
+						<div class="description" id="description"><%=session.description%></div>
+						<%}%>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-12 col-sm-6 msg-wrapper">
+				<div class="head-msg-wrapper">
+					<span id = "chat_with_user"></span>
+				</div>
+				<div class="body-msg-wrapper">
+					<div class="show-msg"  >
+						<ul id="messages"></ul>
+					</div>
+					<div class="send-msg">
+						<form action="" id="form1">
+							<textarea class="body-send-msg" id="m" placeholder="Nhập tin nhắn...."></textarea>
+							<button><span class="glyphicon glyphicon-send" id="send-msg" aria-hidden="true" ></span></button>
+						</form>
+					</div>
+				</div>
+
+			</div>
+
+			<div class="col-xs-6 col-sm-3 list-wrapper">
+				<div class="head-list-wrapper">
+					<div class="set-head">
+						<span data-toggle="modal" data-target="#myModal"  style="color: #FFFFFF"><i data-toggle="tooltip" data-placement="left" title="Create group" class="glyphicon glyphicon-plus"></i></span>
+					</div>
+					<div class="body-head">Chat Online</div>
+					<div class="set-head">
+						<a Title="Logout" href="/logout">
+							<span class="glyphicon glyphicon-off" style="color: #FFFFFF"></span>
+						</a>
+					</div>
+				</div>
+				<div class="body-list-wrapper">
+					<div class="userlist">
+
+						<%if (users != null){for(i in users){%>
+						<%if(users[i].username != session.username){%>	
+						<div class="userlist-single" >						
+							<div class="userlist-user-meta" id = '<%=users[i]._id%>' onclick="usermsg('<%=session._id%>','<%=users[i]._id%>','<%=users[i].username%>','<%=users[i].avatar%>')">
+								<img class="img-circle" src = "<%=users[i].avatar%>"/>
+								<%if(users[i].online == 1){%>
+								<span id="online-user-status<%=users[i]._id%>" class = "status-online">
+								</span>
+								<%}else{%>
+								<span id="online-user-status<%=users[i]._id%>" class = "status-offline">
+								</span>
+								<%}%>
+								<span class="userlist-userName"><%=users[i].username%></span>	
+								<span class="badge" id="badge<%=users[i]._id%>" style="display: none;">1</span>			
+							</div>						  
+						</div>
+						<%}else{%>
+						<%}}%>
+						<%}else{%>
+						<div>
+							<div class="alert alert-danger" >
+								<p class="text-center" >
+									Everyone is offline.
+									<br/><br/>
+									Share this url and Tell your friends to come online.
+								</p >
+							</div>
+						</div>
+						<%}%>
+
+						<%if (groups !== 'undefined' ){for(i in groups){%>
+						<div class="userlist-single"><div class="userlist-user-meta" id = '<%=groups[i]._id%>' onclick="clickgroup('<%=groups[i]._id%>','<%=groups[i].name%>','<%=groups[i].description%>')">
+							<img class="img-circle" src = "<%=groups[i].url%>"/>
+
+							<span class="userlist-userName"><%=groups[i].name%></span>
+
+							<span class="badge" id="badge<%=groups[i]._id%>" style="display: none;">1</span>			
+						</div>						  
+					</div>
+					<%}}%>
+
+				</div>
+
+
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+	var socket = io();
+	var id = '';
+	var username = '';
+	var avatar = '';
+	$('.show-msg').scrollTop($('.show-msg')[0].scrollHeight);
+
+	socket.on('connect', function () { 
+		socket.emit('useronline', {userIdOnline : '<%=session._id%>'})
+	});
+	socket.on('userconnected',function(data){
+		document.getElementById('online-user-status'+data.usersIdOnl).className = 'status-online';
+
+	})
+
+	socket.on('userdisconnected',function(data){
+		document.getElementById('online-user-status'+data.userIdOff).className = 'status-offline';
+	})
+
+	function clickgroup(gid, name_group, description){
+		document.getElementById('chat_with_user').innerHTML = '<span>Group </span>' + name_group + '<span data-toggle="modal" data-target="#myModaladdmember"  style="color: #FFFFFF" onclick="clickAddmember(\''+gid+'\',\''+name_group+'\', \''+description+'\')">   <i data-toggle="tooltip" data-placement="left" title="Add member" class="glyphicon glyphicon-plus"> </i></span>	';
+			id = gid;
+		document.getElementById('messages').innerHTML ="";
+			$.ajax({
+			url:'./getMsgGroup',
+			type:'GET',
+			data:{
+				groupId:gid
+			},
+			success:function(data){
+				var messages =  JSON.parse(data)
+				var li = '';
+				var ava="";
+				if (messages != ''){
+					for(i in messages){
+						var who='';	
+						// var imgg = messages[i].avatar;
+						if(messages[i].usersend == '<%=session._id%>'){
+							who = 'you';
+								ava = '<%=session.avatar%>';
+
+						}else{
+							who='me';
+						
+							ava = messages[i].avatar;
+						}
+						li += '<li class=' + who + '>'+
+						'<div class="image">' +
+						'<img src='+ava+' />' +			
+						'</div>' +
+						'<p>'+messages[i].content+'</p>' +
+						'</li>';
+
+						}
+
+				document.getElementById('messages').innerHTML = li;
+				$('.show-msg').scrollTop($('.show-msg')[0].scrollHeight);
+				}
+				}
+			})
+		socket.emit('addGroup', {groupId:gid, meid: '<%=session._id%>' })
+
+	}
+	function clickAddmember(gid, name_group, description){
+		document.getElementById('name_group_add').innerHTML = name_group;
+		document.getElementById('description_group_add').innerHTML = description;
+		document.getElementById('groupId').value = gid;
+	}
+
+	function usermsg(mid,uid,name,ava){
+		document.getElementById('chat_with_user').innerHTML = name;
+		id = uid;
+		username = name;
+		avatar = ava;
+		document.getElementById('messages').innerHTML ="";
+		document.getElementById('badge'+uid).style.display ="none";
+		$.ajax({
+			url:'./getMsg',
+			type:'GET',
+			data:{
+				mid : mid,
+				uid : uid
+			},
+			success:function(data){
+				var messages =  JSON.parse(data)
+				var li = '';
+				var ava="";
+				if (messages != ''){
+					for(i in messages){
+						var who='';	
+						// var imgg = messages[i].avatar;
+						if(messages[i].usernhan == '<%=session._id%>'){
+							who = 'me';
+							ava = avatar;
+
+						}else{
+							who='you';
+							ava = '<%=session.avatar%>';
+						}
+						li += '<li class=' + who + '>'+
+						'<div class="image">' +
+						'<img src='+ava+' />' +			
+						'</div>' +
+						'<p>'+messages[i].content+'</p>' +
+						'</li>';
+
+						}
+
+				document.getElementById('messages').innerHTML = li;
+				$('.show-msg').scrollTop($('.show-msg')[0].scrollHeight);
+				}
+				}
+			})
+		socket.emit('addUser', {mid: mid, uid: uid});
+
+	}
+	socket.on()
+
+	$('#form1').submit(function(){		
+		socket.emit('client_send_message', {msg:$('#m').val(),uidsend:'<%=session._id%>', uidnhan: id, avatar:'<%=session.avatar%>'});				
+		$('#m').val('');	      
+		return false;
+	});
+
+	var a = document.getElementById('m');
+	a.addEventListener('focus',function(){
+		document.getElementById('badge'+id).style.display ="none";
+	})
+	a.addEventListener("keyup",function(e){
+		if(e.keyCode == 13){				
+			document.getElementById('badge'+id).style.display ="none";
+			socket.emit('client_send_message', {msg:$('#m').val(),uidsend:'<%=session._id%>', uidnhan: id, avatar:'<%=session.avatar%>'});				
+			$('#m').val('');	      
+			return false;
+		}
+	})
+
+	socket.on('server_gui_message', function(data){
+		var who='';	
+		var now;
+		var imgg = data.avatar;
+		if(imgg != '<%=session.avatar%>'){
+			who = 'me';
+		}else{
+			who='you';
+		}
+		var li = $(
+			'<li class=' + who + '>'+
+			'<div class="image">' +
+			'<img src=' + imgg + ' />' +			
+			'</div>' +
+			'<p></p>' +
+			'</li>');
+		li.find('p').text(data.msg);
+		$('#messages').append(li);		
+		$('.show-msg').scrollTop($('.show-msg')[0].scrollHeight);
+	});
+
+	socket.on('new_msg', function(data){
+		if('<%=session._id%>' == data.uidnhan){
+			document.getElementById('badge'+data.uidsend).style.display ="";
+
+		}else{
+			document.getElementById('badge' + data.uidnhan).style.display ="";
+		}
+	})
+
+	function hidecontent(){
+		document.getElementById('title_set').style.display = "none";
+		document.getElementById('info_set').style.display = "none";
+
+	}
+	function showcontent(p){
+		hidecontent();
+		document.getElementById(p+"_set").style.display = "";
+	}
+	showcontent('title');
+
+	function huy(){
+		location.reload();
+	}
+
+	function gui(id){
+		var description = document.getElementById('info_text').value;
+
+		$.ajax({
+			url:'./info',
+			type:'PUT',
+			data:{
+				des : description,
+				userid: id
+			},
+			success:function(data){
+				location.reload();
+			}
+		})
+
+	}
+
+	$(document).ready(function(){
+		$('[data-toggle="tooltip"]').tooltip();   
+	});
+
+	var active_AddMember = document.getElementById('AddMember')
+	active_AddMember.addEventListener('click',add_member)
+	function add_member(){
+		var checkbox = document.getElementsByName('member');
+		var result = "";             
+// Lặp qua từng checkbox để lấy giá trị
+for (var i = 0; i < checkbox.length; i++){
+	if (checkbox[i].checked === true){
+		result +=  checkbox[i].value + '/';
+	}
+}
+$.ajax({
+	url:'./addMember',
+	type: 'PUT',
+	data:{
+		member : result,	
+		groupId : document.getElementById('groupId').value    	
+	},
+	success:function(data){
+		alert('Success.');
+		location.reload();
+	}
+})
+}
+</script>
+
+</body>
+</html>
