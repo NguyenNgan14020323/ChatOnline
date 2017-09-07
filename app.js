@@ -100,7 +100,7 @@ io.on('connection',function(socket){
     socket.leave(socket.room);
   })
 })
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 5000;
 server.listen(port, function () {
-    console.log("server is runing on localhost:3000");
+    console.log("server is runing on localhost:5000");
 });

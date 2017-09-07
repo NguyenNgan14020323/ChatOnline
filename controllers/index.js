@@ -46,7 +46,8 @@ router.route('/getMsg')
 	       $and:[
 	          {'usernhan': req.query.mid}, {'usersend': req.query.uid}]
 	    }]})
-	.sort({'created_at':1})
+	.sort({'created_at':-1})
+	.limit(30)
 	.exec(function(err,data){
 		if(err){
 			res.json({'message':err})
@@ -57,11 +58,68 @@ router.route('/getMsg')
 })
 })
 
+var total = 0;
+router.route('/getMsgId')
+.get(function(req,res){
+	var number = req.query.num
+
+	Message.find(
+		{ $or:[{
+	       $and:[
+	          {'usersend': req.query.mid}, {'usernhan': req.query.uid}]}, {
+
+	       $and:[
+	          {'usernhan': req.query.mid}, {'usersend': req.query.uid}]
+	    }]}
+	)
+	.count(function(err,data){
+		total = data
+	})
+	console.log(total+'data')
+	var num_skip = 0;
+	var num_limit =0;
+
+   if(total > req.query.num - 15)
+    {
+        var num_skip = total - req.query.num;
+        var num_limit = 15;
+        
+        if(num_skip < 0){
+          num_limit = 15 + num_skip;
+          num_skip = 0;
+        }
+
+        Message.find(
+	    { $or:[{
+	       $and:[
+	          {'usersend': req.query.mid}, {'usernhan': req.query.uid}]}, {
+
+	       $and:[
+	          {'usernhan': req.query.mid}, {'usersend': req.query.uid}]
+	    }]})
+		.skip(num_skip)
+		.limit(num_limit)
+				.sort({'created_at':1})
+		.exec(function(err,data){
+			if(err){
+				res.json({'message':err})
+			}else{
+				res.send(JSON.stringify(data));
+					
+			}
+		})
+    }else{
+    	res.send();
+    }
+
+})
+
 router.route('/getMsgGroup')
 .get(function(req,res){
 	var messagess = [];
 	Message.find({'usernhan':req.query.groupId})
 	.sort({'created_at':1})
+	
 	.then(function(messages){
 		var Infouser = []; 
 		messagess = messages;
@@ -151,18 +209,23 @@ router.route('/addMember')
 .put(function(req,res){
 	var members = req.body.member;
 	var temp = members.split('/');
-	for(var i = 0; i < temp.length; i++){
-		var newUserGroup = new User_Group({
-			userId : temp[i],
-			groupId: req.body.groupId
-		})
-		newUserGroup.save(function(err){
-			if(err){
-				console.log(err)
-			}
-		})
+	if(temp.length != 0){
+		for(var i = 0; i < temp.length; i++){
+			var newUserGroup = new User_Group({
+				userId : temp[i],
+				groupId: req.body.groupId
+			})
+			newUserGroup.save(function(err){
+				if(err){
+					console.log(err)
+				}
+			})
+		}
+		res.send()		
+	}else{
+		res.send({'message' : 'error'})
 	}
-	res.send()	 
+	 
 })
 
 router.post('/login',function(req,res){

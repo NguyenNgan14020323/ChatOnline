@@ -113,7 +113,7 @@
 					<span id = "chat_with_user"></span>
 				</div>
 				<div class="body-msg-wrapper">
-					<div class="show-msg"  >
+					<div class="show-msg">
 						<ul id="messages"></ul>
 					</div>
 					<div class="send-msg">
@@ -196,7 +196,58 @@
 	var id = '';
 	var username = '';
 	var avatar = '';
+	var index=15;
+	var cc = '<%=session._id%>'
+
 	$('.show-msg').scrollTop($('.show-msg')[0].scrollHeight);
+
+	$(".show-msg").scroll(function(){
+    	var src = $('.show-msg').scrollTop()
+    	if(src == 0){
+    		index += 15;
+    		console.log(index)
+    	$.ajax({
+			url:'./getMsgId',
+			type:'GET',
+			data:{
+				mid : cc,
+				uid : id,
+				num:index
+			},
+			success:function(data){
+				console.log(data)
+				var messages =  JSON.parse(data)
+				var li = '';
+				var ava="";
+				if (messages != ''){
+					for(i in messages){
+						var who='';	
+						if(messages[i].usernhan == '<%=session._id%>'){
+							who = 'me';
+							ava = avatar;
+
+						}else{
+							who='you';
+							ava = '<%=session.avatar%>';
+						}
+						li += '<li class=' + who + '>'+
+						'<div class="image">' +
+						'<img src='+ava+' />' +			
+						'</div>' +
+						'<p>'+messages[i].content+'</p>' +
+						'</li>';
+						var x = document.getElementById('messages').innerHTML
+						 document.getElementById('messages').innerHTML=""
+						 document.getElementById('messages').innerHTML = li + x;
+					}
+							console.log(li)
+				}
+			}
+		})
+    }
+})
+
+
 
 	socket.on('connect', function () { 
 		socket.emit('useronline', {userIdOnline : '<%=session._id%>'})
@@ -249,8 +300,8 @@
 				document.getElementById('messages').innerHTML = li;
 				$('.show-msg').scrollTop($('.show-msg')[0].scrollHeight);
 				}
-				}
-			})
+			}
+		})
 		socket.emit('addGroup', {groupId:gid, meid: '<%=session._id%>' })
 
 	}
@@ -265,14 +316,16 @@
 		id = uid;
 		username = name;
 		avatar = ava;
+		index = 15;
 		document.getElementById('messages').innerHTML ="";
 		document.getElementById('badge'+uid).style.display ="none";
 		$.ajax({
-			url:'./getMsg',
+			url:'./getMsgId',
 			type:'GET',
 			data:{
 				mid : mid,
-				uid : uid
+				uid : uid,
+				num: index
 			},
 			success:function(data){
 				var messages =  JSON.parse(data)
@@ -300,6 +353,7 @@
 						}
 
 				document.getElementById('messages').innerHTML = li;
+				
 				$('.show-msg').scrollTop($('.show-msg')[0].scrollHeight);
 				}
 				}
@@ -352,9 +406,10 @@
 	socket.on('new_msg', function(data){
 		if('<%=session._id%>' == data.uidnhan){
 			document.getElementById('badge'+data.uidsend).style.display ="";
-
 		}else{
-			document.getElementById('badge' + data.uidnhan).style.display ="";
+			if(id == data.uidnhan){
+				document.getElementById('badge'+data.uidnhan).style.display
+			}
 		}
 	})
 
@@ -399,25 +454,25 @@
 	function add_member(){
 		var checkbox = document.getElementsByName('member');
 		var result = "";             
-// Lặp qua từng checkbox để lấy giá trị
-for (var i = 0; i < checkbox.length; i++){
-	if (checkbox[i].checked === true){
-		result +=  checkbox[i].value + '/';
+		// Lặp qua từng checkbox để lấy giá trị
+		for (var i = 0; i < checkbox.length; i++){
+			if (checkbox[i].checked === true){
+				result +=  checkbox[i].value + '/';
+			}
+		}
+		$.ajax({
+			url:'./addMember',
+			type: 'PUT',
+			data:{
+				member : result,	
+				groupId : document.getElementById('groupId').value    	
+			},
+			success:function(data){
+				alert('Success.');
+				location.reload();
+			}
+		})
 	}
-}
-$.ajax({
-	url:'./addMember',
-	type: 'PUT',
-	data:{
-		member : result,	
-		groupId : document.getElementById('groupId').value    	
-	},
-	success:function(data){
-		alert('Success.');
-		location.reload();
-	}
-})
-}
 </script>
 
 </body>
