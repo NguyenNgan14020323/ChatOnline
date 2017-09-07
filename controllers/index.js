@@ -75,7 +75,6 @@ router.route('/getMsgId')
 	.count(function(err,data){
 		total = data
 	})
-	console.log(total+'data')
 	var num_skip = 0;
 	var num_limit =0;
 
