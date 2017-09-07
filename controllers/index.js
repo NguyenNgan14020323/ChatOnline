@@ -99,7 +99,7 @@ router.route('/getMsgId')
 	    }]})
 		.skip(num_skip)
 		.limit(num_limit)
-				.sort({'created_at':1})
+		.sort({'created_at':1})
 		.exec(function(err,data){
 			if(err){
 				res.json({'message':err})
