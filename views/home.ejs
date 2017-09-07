@@ -196,7 +196,7 @@
 	var id = '';
 	var username = '';
 	var avatar = '';
-	var index=15;
+	var index=30;
 	var cc = '<%=session._id%>'
 
 	$('.show-msg').scrollTop($('.show-msg')[0].scrollHeight);
@@ -204,7 +204,7 @@
 	$(".show-msg").scroll(function(){
     	var src = $('.show-msg').scrollTop()
     	if(src == 0){
-    		index += 15;
+    		index += 30;
     		console.log(index)
     	$.ajax({
 			url:'./getMsgId',
@@ -316,7 +316,7 @@
 		id = uid;
 		username = name;
 		avatar = ava;
-		index = 15;
+		index = 30;
 		document.getElementById('messages').innerHTML ="";
 		document.getElementById('badge'+uid).style.display ="none";
 		$.ajax({

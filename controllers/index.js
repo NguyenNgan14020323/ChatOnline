@@ -79,13 +79,13 @@ router.route('/getMsgId')
 	var num_skip = 0;
 	var num_limit =0;
 
-   if(total > req.query.num - 15)
+   if(total > req.query.num - 30)
     {
         var num_skip = total - req.query.num;
-        var num_limit = 15;
+        var num_limit = 30;
         
         if(num_skip < 0){
-          num_limit = 15 + num_skip;
+          num_limit = 30 + num_skip;
           num_skip = 0;
         }
 
